@@ -1,3 +1,3 @@
 django==3.2.16                      # Джанго
-psycopg2-binary-2.9.5               # Драйвер для работы с postgres
-python-dotenv-0.21.0                # Для работы с env
+psycopg2-binary==2.9.5               # Драйвер для работы с postgres
+python-dotenv==0.21.0                # Для работы с env

@@ -1,3 +1,4 @@
-django==3.2.16                      # Джанго
+django==3.2.16                       # Джанго
+djangorestframework==3.14.0          # Джанго REST
 psycopg2-binary==2.9.5               # Драйвер для работы с postgres
 python-dotenv==0.21.0                # Для работы с env

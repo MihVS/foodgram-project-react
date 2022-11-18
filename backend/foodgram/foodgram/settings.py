@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-+lik2ukusu-h&a1qd4q4=rgyh5ck8wye--+ckspoq#!^yp4k*x
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -73,6 +73,12 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'foodgram.wsgi.application'
+
+
+# Прописываем куда будут сохраняться медиа файлы пользователей
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 # Database

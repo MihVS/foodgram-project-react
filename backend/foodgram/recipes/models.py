@@ -19,8 +19,11 @@ class Tag(models.Model):
         unique=True,
     )
 
+    def __str__(self):
+        return self.slug
 
-class Ingredients(models.Model):
+
+class Ingredient(models.Model):
     name = models.CharField(
         max_length=256,
         verbose_name='Название',
@@ -30,12 +33,20 @@ class Ingredients(models.Model):
         verbose_name='Единицы измерения',
     )
 
+    def __str__(self):
+        return self.name
+
 
 class Recipe(models.Model):
     tags = models.ManyToManyField(
         Tag,
-        # related_name='recipes',
+        related_name='recipes_tags',
         verbose_name='Тег',
+    )
+    ingredients = models.ManyToManyField(
+        Ingredient,
+        related_name='recipes_ingredients',
+        verbose_name='Ингредиенты',
     )
     pub_date = models.DateTimeField(
         verbose_name='Дата публикации',
@@ -51,4 +62,42 @@ class Recipe(models.Model):
         max_length=256,
         verbose_name='Название',
     )
+    image = models.ImageField(
+        upload_to='recipes/',
+    )
+    description = models.TextField(
+        verbose_name='Текст поста',
+    )
+    cooking_time = models.TimeField(
+        verbose_name='Время приготовления',
+    )
 
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['-pub_date']
+
+
+class BaseList(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='%(class)s',
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='%(class)s',
+    )
+
+    class Meta:
+        abstract = True
+
+
+class Favorite(BaseList):
+    pass
+
+
+class SoppingCart(BaseList):
+    pass

@@ -27,7 +27,7 @@ class User(AbstractUser):
         max_length=150,
     )
     last_name = models.CharField(
-        verbose_name='Имя',
+        verbose_name='Фамилия',
         max_length=150,
     )
     role = models.CharField(max_length=30,

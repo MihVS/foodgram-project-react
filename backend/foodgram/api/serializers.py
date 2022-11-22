@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from recipes.models import Tag
+from recipes.models import Ingredient, Tag
 
 
 User = get_user_model()
@@ -64,8 +64,16 @@ class CreateUserSerializer(serializers.ModelSerializer):
 
 
 class TagSerializer(serializers.ModelSerializer):
-    """Сериарелизатор для тегов"""
+    """Сериализатор для тегов"""
 
     class Meta:
         model = Tag
+        fields = '__all__'
+
+
+class IngredientSerializer(serializers.ModelSerializer):
+    """Сериализатор для ингредиентов рецепта"""
+
+    class Meta:
+        model = Ingredient
         fields = '__all__'

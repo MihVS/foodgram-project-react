@@ -8,12 +8,12 @@ class Tag(models.Model):
     """Тэги для рецептов"""
 
     name = models.CharField(
-        max_length=256,
+        max_length=200,
         unique=True,
         verbose_name='Название',
     )
     color = models.CharField(
-        max_length=16,
+        max_length=7,
         unique=True,
         verbose_name='Цвет',
     )
@@ -29,11 +29,11 @@ class Ingredient(models.Model):
     """Ингредиенты для рецепта"""
 
     name = models.CharField(
-        max_length=256,
+        max_length=200,
         verbose_name='Название',
     )
     measurement_unit = models.CharField(
-        max_length=10,
+        max_length=200,
         verbose_name='Единицы измерения',
     )
 

@@ -5,6 +5,8 @@ User = get_user_model()
 
 
 class Tag(models.Model):
+    """Тэги для рецептов"""
+
     name = models.CharField(
         max_length=256,
         unique=True,
@@ -24,6 +26,8 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
+    """Ингредиенты для рецепта"""
+
     name = models.CharField(
         max_length=256,
         verbose_name='Название',
@@ -38,6 +42,8 @@ class Ingredient(models.Model):
 
 
 class Recipe(models.Model):
+    """Рецепт"""
+
     tags = models.ManyToManyField(
         Tag,
         related_name='recipes_tags',
@@ -97,8 +103,33 @@ class BaseList(models.Model):
 
 
 class Favorite(BaseList):
+    """Избранные рецепты пользователя"""
+
     pass
 
 
 class SoppingCart(BaseList):
+    """Список покупок пользователя"""
+
     pass
+
+
+class Follow(models.Model):
+    """Подписка на автора рецепта"""
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='follower',
+        verbose_name='Подписчик',
+        blank=True,
+        null=True
+    )
+
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='following',
+        verbose_name='Автор',
+        blank=True,
+        null=True
+    )

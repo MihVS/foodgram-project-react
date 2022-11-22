@@ -15,6 +15,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from rest_framework import routers
+
+from api.views import UsersViewSet
+
+# router_version_1 = routers.DefaultRouter()
+# router_version_1.register('users', UsersViewSet, basename='users')
+
 
 urlpatterns = [
     path('api/', include('api.urls')),

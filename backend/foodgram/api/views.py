@@ -34,6 +34,20 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     Теги доступны только для чтения.
     """
 
-    queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
+
+    def get_queryset(self):
+        """
+        Получает queryset в соответствии параметром name.
+
+        Поиск по частичному вхождению в начале названия ингредиента.
+        """
+
+        queryset = Ingredient.objects.all()
+        name = self.request.query_params.get('name')
+
+        if name:
+            queryset = queryset.filter(name__istartswith=name)
+
+        return queryset

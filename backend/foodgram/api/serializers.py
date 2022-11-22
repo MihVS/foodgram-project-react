@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from recipes.models import Ingredient, Tag
+from recipes.models import Ingredient, Recipe, Tag
 
 
 User = get_user_model()
@@ -35,6 +35,10 @@ class UsersSerializer(serializers.ModelSerializer):
         """
 
         user = self.context['request'].user
+
+        if user.is_anonymous or (user == obj):
+            return False
+
         return user.follower.filter(author=obj.id).exists()
 
 
@@ -64,7 +68,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
 
 
 class TagSerializer(serializers.ModelSerializer):
-    """Сериализатор для тегов"""
+    """Сериализатор для тегов."""
 
     class Meta:
         model = Tag
@@ -72,8 +76,18 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class IngredientSerializer(serializers.ModelSerializer):
-    """Сериализатор для ингредиентов рецепта"""
+    """Сериализатор для ингредиентов рецепта."""
 
     class Meta:
         model = Ingredient
+        fields = '__all__'
+
+
+class RecipesSerializer(serializers.ModelSerializer):
+    """Сериализатор для рецепта."""
+
+    author = UsersSerializer()
+
+    class Meta:
+        model = Recipe
         fields = '__all__'

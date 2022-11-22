@@ -72,11 +72,11 @@ class Recipe(models.Model):
     image = models.ImageField(
         upload_to='recipes/',
     )
-    description = models.TextField(
+    text = models.TextField(
         verbose_name='Текст поста',
     )
-    cooking_time = models.TimeField(
-        verbose_name='Время приготовления',
+    cooking_time = models.PositiveSmallIntegerField(
+        verbose_name='Время приготовления в минутах',
     )
 
     def __str__(self):

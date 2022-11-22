@@ -1,9 +1,10 @@
 from rest_framework import viewsets
 from django.contrib.auth import get_user_model
 
-from .serializers import IngredientSerializer, UsersSerializer, TagSerializer
+from .serializers import (IngredientSerializer, RecipesSerializer,
+                          UsersSerializer, TagSerializer)
 
-from recipes.models import Ingredient, Tag
+from recipes.models import Ingredient, Recipe, Tag
 
 User = get_user_model()
 
@@ -51,3 +52,11 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = queryset.filter(name__istartswith=name)
 
         return queryset
+
+
+class RecipesViewSet(viewsets.ReadOnlyModelViewSet):
+    """Вьюсет для рецептов"""
+
+    queryset = Recipe.objects.all()
+    serializer_class = RecipesSerializer
+

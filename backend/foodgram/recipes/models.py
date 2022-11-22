@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.core.validators import MinValueValidator
 
 User = get_user_model()
 
@@ -86,7 +87,31 @@ class Recipe(models.Model):
         ordering = ['-pub_date']
 
 
+class AmountIngredient(models.Model):
+    """Количество ингредиентов в рецепте"""
+
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='amount_ingredients',
+        verbose_name='Рецепт для ингредиента'
+    )
+    ingredient = models.ForeignKey(
+        Ingredient,
+        on_delete=models.CASCADE,
+        related_name='amount_ingredients',
+        verbose_name='Ингредиент'
+    )
+    amount = models.PositiveSmallIntegerField(
+        verbose_name='Количество',
+        validators=(
+            MinValueValidator(1, 'Количество должно быть не меньше 1'),
+        )
+    )
+
+
 class BaseList(models.Model):
+    """Базовый класс для избранного и списка покупок."""
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,

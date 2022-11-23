@@ -1,8 +1,9 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from recipes.models import Ingredient, Recipe, Tag
+# from django.db.models import F
 
+from recipes.models import Ingredient, Recipe, Tag
 
 User = get_user_model()
 
@@ -54,7 +55,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'password',
-                  )
+        )
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -80,14 +81,44 @@ class IngredientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ingredient
-        fields = '__all__'
+        fields = (
+            'id',
+            'name',
+            'measurement_unit',
+        )
 
 
 class RecipesSerializer(serializers.ModelSerializer):
     """Сериализатор для рецепта."""
 
     author = UsersSerializer()
+    tags = TagSerializer(many=True)
+    ingredients = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
-        fields = '__all__'
+        fields = (
+            'id',
+            'tags',
+            'author',
+            'ingredients',
+            # 'is_favorited',
+            # 'is_in_shopping_cart',
+            'name',
+            'image',
+            'text',
+            'cooking_time',
+        )
+
+    def get_ingredients(self, obj):
+        # data = self.data
+        # amount
+        data = []
+        ingredients = obj.ingredients.values(
+            # 'id', 'name', 'measurement_unit', amount=F('amount_ingredients__amount')
+        )
+        for ingredient in ingredients:
+            ingredient['amount'] = 3
+            data.append(ingredient)
+        print(data)
+        return ingredients

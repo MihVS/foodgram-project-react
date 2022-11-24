@@ -1,8 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-# from django.db.models import F
-
 from recipes.models import Ingredient, Recipe, Tag
 
 User = get_user_model()
@@ -77,7 +75,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class IngredientSerializer(serializers.ModelSerializer):
-    """Сериализатор для ингредиентов рецепта."""
+    """Сериализатор для ингредиентов."""
 
     class Meta:
         model = Ingredient
@@ -88,12 +86,31 @@ class IngredientSerializer(serializers.ModelSerializer):
         )
 
 
+class IngredientsForRecipeSerializer(serializers.ModelSerializer):
+    """Сериализатор для ингредиентов рецепта."""
+
+    # amount_ingredients = serializers.StringRelatedField(read_only=True)
+    amount = serializers.IntegerField(source='amount_ingredients')
+
+    class Meta:
+        model = Ingredient
+        fields = (
+            'id',
+            'name',
+            'measurement_unit',
+            'amount',
+        )
+
+
 class RecipesSerializer(serializers.ModelSerializer):
     """Сериализатор для рецепта."""
 
     author = UsersSerializer()
     tags = TagSerializer(many=True)
-    ingredients = serializers.SerializerMethodField()
+    ingredients = IngredientsForRecipeSerializer(
+        many=True#, source='ingredients_set_ingredients'
+    )
+    # ingredients = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
@@ -110,15 +127,12 @@ class RecipesSerializer(serializers.ModelSerializer):
             'cooking_time',
         )
 
-    def get_ingredients(self, obj):
-        # data = self.data
-        # amount
-        data = []
-        ingredients = obj.ingredients.values(
-            # 'id', 'name', 'measurement_unit', amount=F('amount_ingredients__amount')
-        )
-        for ingredient in ingredients:
-            ingredient['amount'] = 3
-            data.append(ingredient)
-        print(data)
-        return ingredients
+    # def get_ingredients(self, obj):
+    #     # id = obj.ingredients.values('id')
+    #     # amounts = obj.amount_ingredients.get(ingredient_id=22).amount
+    #     # print(amounts)
+    #     ingredients = obj.amount_ingredients.values(
+    #        # 'id', 'name', 'measurement_unit', obj.amount_ingredients.get(ingredient_id=id).amount
+    #     )
+    #
+    #     return ingredients

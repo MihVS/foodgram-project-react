@@ -52,7 +52,7 @@ class Recipe(models.Model):
     )
     ingredients = models.ManyToManyField(
         Ingredient,
-        related_name='recipes_ingredients',
+        through='AmountIngredientRecipe',
         verbose_name='Ингредиенты',
 
     )
@@ -87,7 +87,7 @@ class Recipe(models.Model):
         ordering = ['-pub_date']
 
 
-class AmountIngredient(models.Model):
+class AmountIngredientRecipe(models.Model):
     """Количество ингредиентов в рецепте"""
 
     recipe = models.ForeignKey(
@@ -104,6 +104,7 @@ class AmountIngredient(models.Model):
     )
     amount = models.PositiveSmallIntegerField(
         verbose_name='Количество',
+        default=1,
         validators=(
             MinValueValidator(1, 'Количество должно быть не меньше 1'),
         )

@@ -1,6 +1,8 @@
 from rest_framework import viewsets
 from django.contrib.auth import get_user_model
 
+from rest_framework import permissions
+
 from .serializers import (IngredientSerializer, RecipesSerializer,
                           UsersSerializer, TagSerializer)
 
@@ -54,9 +56,10 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
 
-class RecipesViewSet(viewsets.ReadOnlyModelViewSet):
+class RecipesViewSet(viewsets.ModelViewSet):
     """Вьюсет для рецептов"""
 
     queryset = Recipe.objects.all()
     serializer_class = RecipesSerializer
+    # permission_classes = (permissions.AllowAny,)
 

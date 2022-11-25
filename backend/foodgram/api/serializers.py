@@ -2,6 +2,8 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from recipes.models import AmountIngredientRecipe, Ingredient, Recipe, Tag
+from api.custom_fields import Base64ImageField
+
 
 User = get_user_model()
 
@@ -117,6 +119,7 @@ class RecipesSerializer(serializers.ModelSerializer):
     ingredients = IngredientsForRecipeSerializer(
         many=True, source='amount_ingredients'
     )
+    image = Base64ImageField()
 
     class Meta:
         model = Recipe
@@ -133,4 +136,40 @@ class RecipesSerializer(serializers.ModelSerializer):
             'cooking_time',
         )
 
+    def create(self, validated_data):
+        current_user = self.context.get('request').user
+        print(validated_data)
+        print(self.context)
+        print(current_user)
+        recipe = Recipe.objects.create(
+            tags=3,
+            author=current_user,
+            name='test',
+            image="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAg"
+                  "MAAABieywaAAAACVBMVEUAAAD///9fX1/S0ecCAAAACXBIWXMAAA7EAA"
+                  "AOxAGVKw4bAAAACklEQVQImWNoAAAAggCByxOyYQAAAABJRU5ErkJggg==",
+            text='TEST TEST',
+            cooking_time=22
+        )
+        return recipe
+
+    # def update(self, instance, validated_data):
+    #     print('ya tut')
+    #     return None
+
+    # def create_ingredients(self, ingredients, recipe):
+    #     for ingredient in ingredients:
+    #         AmountIngredientRecipe.objects.create(
+    #             recipe=recipe,
+    #             ingredient_id=ingredient.get('id'),
+    #             amount=ingredient.get('amount'),
+    #         )
+    #
     # def create(self, validated_data):
+    #     image = validated_data.pop('image')
+    #     ingredients_data = validated_data.pop('ingredients')
+    #     recipe = Recipe.objects.create(image=image, **validated_data)
+    #     tags_data = self.initial_data.get('tags')
+    #     recipe.tags.set(tags_data)
+    #     self.create_ingredients(ingredients_data, recipe)
+    #     return recipe

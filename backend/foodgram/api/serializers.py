@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from recipes.models import Ingredient, Recipe, Tag
+from recipes.models import AmountIngredientRecipe, Ingredient, Recipe, Tag
 
 User = get_user_model()
 
@@ -87,13 +87,20 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class IngredientsForRecipeSerializer(serializers.ModelSerializer):
-    """Сериализатор для ингредиентов рецепта."""
+    """
+    Сериализатор для ингредиентов рецепта.
 
-    # amount_ingredients = serializers.StringRelatedField(read_only=True)
-    amount = serializers.IntegerField(source='amount_ingredients')
+    Выполнен через модель AmountIngredientRecipe
+    """
+
+    id = serializers.ReadOnlyField(source='ingredient.id')
+    name = serializers.ReadOnlyField(source='ingredient.name')
+    measurement_unit = serializers.ReadOnlyField(
+        source='ingredient.measurement_unit'
+    )
 
     class Meta:
-        model = Ingredient
+        model = AmountIngredientRecipe
         fields = (
             'id',
             'name',
@@ -108,9 +115,8 @@ class RecipesSerializer(serializers.ModelSerializer):
     author = UsersSerializer()
     tags = TagSerializer(many=True)
     ingredients = IngredientsForRecipeSerializer(
-        many=True#, source='ingredients_set_ingredients'
+        many=True, source='amount_ingredients'
     )
-    # ingredients = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
@@ -127,12 +133,4 @@ class RecipesSerializer(serializers.ModelSerializer):
             'cooking_time',
         )
 
-    # def get_ingredients(self, obj):
-    #     # id = obj.ingredients.values('id')
-    #     # amounts = obj.amount_ingredients.get(ingredient_id=22).amount
-    #     # print(amounts)
-    #     ingredients = obj.amount_ingredients.values(
-    #        # 'id', 'name', 'measurement_unit', obj.amount_ingredients.get(ingredient_id=id).amount
-    #     )
-    #
-    #     return ingredients
+    # def create(self, validated_data):

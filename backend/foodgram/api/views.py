@@ -8,6 +8,7 @@ from .serializers import (IngredientSerializer, RecipesSerializer,
 
 from recipes.models import Ingredient, Recipe, Tag
 
+
 User = get_user_model()
 
 

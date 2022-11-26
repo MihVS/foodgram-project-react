@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
@@ -114,10 +115,10 @@ class IngredientsForRecipeSerializer(serializers.ModelSerializer):
 class RecipesSerializer(serializers.ModelSerializer):
     """Сериализатор для рецепта."""
 
-    author = UsersSerializer()
-    tags = TagSerializer(many=True)
+    author = UsersSerializer(read_only=True)
+    tags = TagSerializer(many=True, read_only=True)
     ingredients = IngredientsForRecipeSerializer(
-        many=True, source='amount_ingredients'
+        many=True, source='amount_ingredients', read_only=True
     )
     image = Base64ImageField()
 
@@ -136,40 +137,85 @@ class RecipesSerializer(serializers.ModelSerializer):
             'cooking_time',
         )
 
+    def validate(self, attrs):
+        """
+        Валидацияя данных перед выполнением метода create(validated_data)
+        :param attrs: атрибуты полученные для валидации.
+        :return: возвращает провалидированные данные.
+        """
+        ingredients = self.initial_data.get('ingredients')
+        if not ingredients:
+            raise serializers.ValidationError(
+                {'ingredients': 'Обязательное поле'}
+            )
+        ingredient_list = []
+        for ingredient_item in ingredients:
+            ingredient = get_object_or_404(
+                Ingredient,
+                id=ingredient_item['id']
+            )
+            if ingredient in ingredient_list:
+                raise serializers.ValidationError(
+                    'Ингредиенты не должны повторяться'
+                )
+            ingredient_list.append(ingredient)
+
+        attrs['ingredients'] = ingredients
+        return attrs
+
+    def _craate_ingredients(self, ingredients, recipe):
+        """
+        Создание ингредиентов в таблице recipes_amountingredientrecipe.
+
+        :param ingredients: список словарей с ключами:
+            'id' - id ингредиента,
+            'amount' - количество ингредиентов
+        :param recipe: объект рецепта
+        """
+        for ingredient in ingredients:
+            AmountIngredientRecipe.objects.create(
+                recipe=recipe,
+                ingredient_id=ingredient.get('id'),
+                amount=ingredient.get('amount')
+            )
+
     def create(self, validated_data):
+        """
+        Создаёт рецепт.
+
+        :param validated_data: провалидированные данные.
+        :return: возвращает объект созданного рецепта.
+        """
         current_user = self.context.get('request').user
-        print(validated_data)
-        print(self.context)
-        print(current_user)
+        tags = self.initial_data.get('tags')
+        ingredients = validated_data.pop('ingredients')
         recipe = Recipe.objects.create(
-            tags=3,
             author=current_user,
-            name='test',
-            image="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAg"
-                  "MAAABieywaAAAACVBMVEUAAAD///9fX1/S0ecCAAAACXBIWXMAAA7EAA"
-                  "AOxAGVKw4bAAAACklEQVQImWNoAAAAggCByxOyYQAAAABJRU5ErkJggg==",
-            text='TEST TEST',
-            cooking_time=22
+            **validated_data
         )
+        self._craate_ingredients(ingredients, recipe)
+        recipe.tags.set(tags)
         return recipe
 
-    # def update(self, instance, validated_data):
-    #     print('ya tut')
-    #     return None
+    def update(self, instance, validated_data):
+        """
+        Обновляет рецепт новыми данными.
+        :param instance: объект который будет изменяться.
+        :param validated_data: провалидированные полученные данные.
+        :return: возвращает изменённый объект.
+        """
 
-    # def create_ingredients(self, ingredients, recipe):
-    #     for ingredient in ingredients:
-    #         AmountIngredientRecipe.objects.create(
-    #             recipe=recipe,
-    #             ingredient_id=ingredient.get('id'),
-    #             amount=ingredient.get('amount'),
-    #         )
-    #
-    # def create(self, validated_data):
-    #     image = validated_data.pop('image')
-    #     ingredients_data = validated_data.pop('ingredients')
-    #     recipe = Recipe.objects.create(image=image, **validated_data)
-    #     tags_data = self.initial_data.get('tags')
-    #     recipe.tags.set(tags_data)
-    #     self.create_ingredients(ingredients_data, recipe)
-    #     return recipe
+        instance.name = validated_data.get('name', instance.name)
+        instance.text = validated_data.get('text', instance.text)
+        instance.image = validated_data.get('image', instance.image)
+        instance.cooking_time = validated_data.get(
+            'cooking_time', instance.cooking_time
+        )
+        instance.tags.clear()
+        tags = self.initial_data.get('tags')
+        instance.tags.set(tags)
+        AmountIngredientRecipe.objects.filter(recipe=instance).all().delete()
+        ingredients = validated_data.get('ingredients')
+        self._craate_ingredients(ingredients, instance)
+        instance.save()
+        return instance

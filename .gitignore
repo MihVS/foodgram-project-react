@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# media files in backend
+backend/foodgram/media/recipes/images
+
 # C extensions
 *.so
 

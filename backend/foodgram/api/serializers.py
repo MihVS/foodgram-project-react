@@ -69,7 +69,20 @@ class CreateUserSerializer(serializers.ModelSerializer):
         return get_user_model().objects.create_user(**validated_data)
 
 
-class SubscribeSerializer(UsersSerializer):
+class RecipeFollowing(serializers.ModelSerializer):
+    """Сериализатор для рецептов у его автора"""
+
+    class Meta:
+        model = Recipe
+        fields = (
+            'id',
+            'name',
+            'image',
+            'cooking_time',
+        )
+
+
+class FollowSerializer(UsersSerializer):
     """Сериализатор для подписчиков."""
 
     recipes = serializers.SerializerMethodField()
@@ -90,14 +103,17 @@ class SubscribeSerializer(UsersSerializer):
 
     def get_recipes(self, obj):
         """
-        Получаем рецепты запрошенного пользователя
-        :param obj:
-        :return:
+        Получаем рецепты запрошенного пользователя.
+
+        :param obj: автор рецепта
+        :return: Сериализованные данные сериализатором RecipeFollowing
         """
-        return False
+
+        recipes = obj.recipes.all()
+        return RecipeFollowing(instance=recipes, many=True).data
 
     def get_recipes_count(self, obj):
-        return 3
+        return obj.recipes.count()
 
 
 class TagSerializer(serializers.ModelSerializer):

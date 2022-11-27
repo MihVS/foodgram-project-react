@@ -4,10 +4,9 @@ from django.contrib.auth import get_user_model
 # from rest_framework.status import HTTP_401_UNAUTHORIZED
 from rest_framework.decorators import action
 from .serializers import (IngredientSerializer, RecipesSerializer,
-                          UsersSerializer, TagSerializer, SubscribeSerializer)
+                          UsersSerializer, TagSerializer, FollowSerializer)
 
-from recipes.models import Ingredient, Recipe, Tag
-
+from recipes.models import Ingredient, Recipe, Tag, Follow
 
 User = get_user_model()
 
@@ -18,25 +17,44 @@ class UsersViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UsersSerializer
 
-    @action(
-        method=('post', 'delete'),
-        detile=True,
-        permission_classes=[permissions.IsAuthenticated],
-        serializer_class=SubscribeSerializer
-    )
-    def subscribe(self, request, pk):
-        """
-        Создаётся или удаляется подписка на пользователя.
+    # @action(
+    #     methods=('post', 'delete'),
+    #     detail=True,
+    #     permission_classes=[permissions.IsAuthenticated],
+    #     serializer_class=FollowSerializer
+    # )
+    # def subscribe(self, request, pk):
+    #     """
+    #     Создаётся или удаляется подписка на пользователя.
+    #
+    #     :param request: не используется.
+    #     :param pk: id пользователя на которого нужно подписаться(отписаться).
+    #     :return:
+    #     """
+    #
+    #     # serializer = SubscribeSerializer(data=request.data)
+    #     print(request)
+    #     print(pk)
+    #     return
 
-        :param request:
-        :param pk: id пользователя на которого нужно подписаться или отписаться
+    @action(
+        methods=('get',),
+        detail=False,
+        permission_classes=[permissions.IsAuthenticated],
+        serializer_class=FollowSerializer
+    )
+    def subscriptions(self, request):
+        """
+        Получаем всех пользователей на которых подписан.
+
+        :param request: не используется.
         :return:
         """
 
-        # serializer = SubscribeSerializer(data=request.data)
-        print(request)
-        print(pk)
-        return
+        user = request.user
+        following_queryset = Follow.objects.filter(user=user)
+
+        return FollowSerializer(following_queryset, many=True, context={'request': request}).data
 
 
 # class FollowerViewSet(mixins.CreateModelMixin,
@@ -46,6 +64,7 @@ class UsersViewSet(viewsets.ModelViewSet):
 #     """Вьюсет для подписчиков"""
 #
 #     queryset = User.objects.all()
+
 #     serializer_class = FollowerSerializer
 #     permission_classes = (permissions.IsAuthenticated,)
 

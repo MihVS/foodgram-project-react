@@ -1,10 +1,10 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, mixins, permissions
 from django.contrib.auth import get_user_model
 
-from rest_framework import permissions
-
+# from rest_framework.status import HTTP_401_UNAUTHORIZED
+from rest_framework.decorators import action
 from .serializers import (IngredientSerializer, RecipesSerializer,
-                          UsersSerializer, TagSerializer)
+                          UsersSerializer, TagSerializer, SubscribeSerializer)
 
 from recipes.models import Ingredient, Recipe, Tag
 
@@ -17,6 +17,37 @@ class UsersViewSet(viewsets.ModelViewSet):
 
     queryset = User.objects.all()
     serializer_class = UsersSerializer
+
+    @action(
+        method=('post', 'delete'),
+        detile=True,
+        permission_classes=[permissions.IsAuthenticated],
+        serializer_class=SubscribeSerializer
+    )
+    def subscribe(self, request, pk):
+        """
+        Создаётся или удаляется подписка на пользователя.
+
+        :param request:
+        :param pk: id пользователя на которого нужно подписаться или отписаться
+        :return:
+        """
+
+        # serializer = SubscribeSerializer(data=request.data)
+        print(request)
+        print(pk)
+        return
+
+
+# class FollowerViewSet(mixins.CreateModelMixin,
+#                       mixins.DestroyModelMixin,
+#                       mixins.ListModelMixin,
+#                       GenericViewSet):
+#     """Вьюсет для подписчиков"""
+#
+#     queryset = User.objects.all()
+#     serializer_class = FollowerSerializer
+#     permission_classes = (permissions.IsAuthenticated,)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):

@@ -69,6 +69,37 @@ class CreateUserSerializer(serializers.ModelSerializer):
         return get_user_model().objects.create_user(**validated_data)
 
 
+class SubscribeSerializer(UsersSerializer):
+    """Сериализатор для подписчиков."""
+
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed',
+            'recipes',
+            'recipes_count'
+        )
+
+    def get_recipes(self, obj):
+        """
+        Получаем рецепты запрошенного пользователя
+        :param obj:
+        :return:
+        """
+        return False
+
+    def get_recipes_count(self, obj):
+        return 3
+
+
 class TagSerializer(serializers.ModelSerializer):
     """Сериализатор для тегов."""
 
@@ -163,7 +194,8 @@ class RecipesSerializer(serializers.ModelSerializer):
         attrs['ingredients'] = ingredients
         return attrs
 
-    def _craate_ingredients(self, ingredients, recipe):
+    @staticmethod
+    def _create_ingredients(ingredients, recipe):
         """
         Создание ингредиентов в таблице recipes_amountingredientrecipe.
 
@@ -193,7 +225,7 @@ class RecipesSerializer(serializers.ModelSerializer):
             author=current_user,
             **validated_data
         )
-        self._craate_ingredients(ingredients, recipe)
+        self._create_ingredients(ingredients, recipe)
         recipe.tags.set(tags)
         return recipe
 

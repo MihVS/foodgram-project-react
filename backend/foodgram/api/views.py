@@ -1,5 +1,7 @@
 from rest_framework import viewsets, permissions, status
 from django.contrib.auth import get_user_model
+from django.db.models import Sum, F
+from django.http.response import HttpResponse
 
 from rest_framework.generics import get_object_or_404
 
@@ -10,7 +12,7 @@ from .serializers import (IngredientSerializer, RecipesSerializer,
                           UsersSerializer, TagSerializer, FollowSerializer)
 
 from recipes.models import (Ingredient, Recipe, Tag, Follow, Favorite,
-                            ShoppingCart)
+                            ShoppingCart, AmountIngredientRecipe)
 
 from .mixins import FavoriteShoppingcartMixin
 
@@ -80,7 +82,7 @@ class UsersViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(
-        methods=('get',),
+        methods=['get'],
         detail=False,
         permission_classes=[permissions.IsAuthenticated],
     )
@@ -192,7 +194,11 @@ class RecipesViewSet(viewsets.ModelViewSet, FavoriteShoppingcartMixin):
         )
         return response
 
-    @action(methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    @action(
+        methods=['get'],
+        detail=False,
+        permission_classes=[permissions.IsAuthenticated],
+    )
     def download_shopping_cart(self, request):
         """
         Формирует файл списка продуктов из рецептов в списке покупок.
@@ -200,4 +206,35 @@ class RecipesViewSet(viewsets.ModelViewSet, FavoriteShoppingcartMixin):
         :param request:
         :return:
         """
-        return None
+
+        user = request.user
+
+        if not user.shoppingcart.all().exists():
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        recipes_of_user = user.shoppingcart.values('recipe')
+        ingredients_in_recipes = AmountIngredientRecipe.objects.filter(
+            recipe__in=recipes_of_user
+        )
+        sum_ingredients = ingredients_in_recipes.values(
+            ingredient_name=F('ingredient__name'),
+            measurement_unit=F('ingredient__measurement_unit')
+        ).annotate(amount=Sum('amount'))
+
+        list_ingredients = (f'Список продуктов для пользователя с именем: '
+                            f'{user.get_full_name()}\n\n')
+
+        for ingredient in sum_ingredients:
+            ingredient_str = (f'{ingredient["ingredient_name"]} '
+                              f'({ingredient["measurement_unit"]}) - '
+                              f'{ingredient["amount"]}\n')
+            list_ingredients += ingredient_str
+
+        file_name = f'shopping_cart_{user.username}.txt'
+        response = HttpResponse(
+            content=list_ingredients,
+            content_type='text/plain; charset=utf-8',
+            status=status.HTTP_200_OK
+        )
+        response['Content-Disposition'] = f'attachment; filename={file_name}'
+        return response

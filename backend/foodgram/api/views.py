@@ -5,6 +5,8 @@ from django.http.response import HttpResponse
 
 from rest_framework.generics import get_object_or_404
 
+from django_filters.rest_framework import DjangoFilterBackend
+
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
@@ -15,6 +17,7 @@ from recipes.models import (Ingredient, Recipe, Tag, Follow, Favorite,
                             ShoppingCart, AmountIngredientRecipe)
 
 from .mixins import FavoriteShoppingcartMixin
+from .service import RecipeFilter
 
 
 User = get_user_model()
@@ -150,6 +153,8 @@ class RecipesViewSet(viewsets.ModelViewSet, FavoriteShoppingcartMixin):
     queryset = Recipe.objects.all()
     serializer_class = RecipesSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = RecipeFilter
 
     @action(
         methods=['post', 'delete'],

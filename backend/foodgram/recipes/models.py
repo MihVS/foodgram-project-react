@@ -134,7 +134,7 @@ class Favorite(BaseList):
     pass
 
 
-class SoppingCart(BaseList):
+class ShoppingCart(BaseList):
     """Список покупок пользователя"""
 
     pass

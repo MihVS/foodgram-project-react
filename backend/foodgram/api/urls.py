@@ -13,12 +13,6 @@ router.register('users', UsersViewSet, basename='users')
 
 urlpatterns = [
     path('', include(router.urls)),
-    # path('users/subscriptions/', FollowerViewSet.as_view(
-    #     {'get': 'list'}
-    # )),
-    # path('users/<int:pk>/subscriptions/', FollowerViewSet.as_view(
-    #     {'post': 'create', 'delete': 'destroy'}
-    # )),
     path('', include('djoser.urls')),
     re_path(r'^auth/', include('djoser.urls.authtoken')),
 ]

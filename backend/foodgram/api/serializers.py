@@ -2,7 +2,8 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from recipes.models import AmountIngredientRecipe, Ingredient, Recipe, Tag
+from recipes.models import (AmountIngredientRecipe, Ingredient, Recipe, Tag,
+                            Favorite, ShoppingCart)
 from api.custom_fields import Base64ImageField
 
 
@@ -69,8 +70,8 @@ class CreateUserSerializer(serializers.ModelSerializer):
         return get_user_model().objects.create_user(**validated_data)
 
 
-class RecipeFollowing(serializers.ModelSerializer):
-    """Сериализатор для рецептов у его автора"""
+class ShortRecipesSerializer(serializers.ModelSerializer):
+    """Краткий сериализатор рецепта"""
 
     class Meta:
         model = Recipe
@@ -80,6 +81,19 @@ class RecipeFollowing(serializers.ModelSerializer):
             'image',
             'cooking_time',
         )
+
+
+# class RecipeFollowingSerializer(serializers.ModelSerializer):
+#     """Сериализатор для рецептов у его автора"""
+#
+#     class Meta:
+#         model = Recipe
+#         fields = (
+#             'id',
+#             'name',
+#             'image',
+#             'cooking_time',
+#         )
 
 
 class FollowSerializer(UsersSerializer):
@@ -110,7 +124,7 @@ class FollowSerializer(UsersSerializer):
         """
 
         recipes = obj.recipes.all()
-        return RecipeFollowing(instance=recipes, many=True).data
+        return ShortRecipesSerializer(instance=recipes, many=True).data
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
@@ -168,6 +182,8 @@ class RecipesSerializer(serializers.ModelSerializer):
         many=True, source='amount_ingredients', read_only=True
     )
     image = Base64ImageField()
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
@@ -176,20 +192,42 @@ class RecipesSerializer(serializers.ModelSerializer):
             'tags',
             'author',
             'ingredients',
-            # 'is_favorited',
-            # 'is_in_shopping_cart',
+            'is_favorited',
+            'is_in_shopping_cart',
             'name',
             'image',
             'text',
             'cooking_time',
         )
 
+    def get_is_favorited(self, obj):
+        """Проверяем наличие рецепта в избранном"""
+
+        user = self.context['request'].user
+        is_favorired = Favorite.objects.filter(
+            user=user,
+            recipe=obj
+        ).exists()
+        return is_favorired
+
+    def get_is_in_shopping_cart(self, obj):
+        """Проверяем наличие рецепта в корзине покупок"""
+
+        user = self.context['request'].user
+        is_in_shopping_cart = ShoppingCart.objects.filter(
+            user=user,
+            recipe=obj
+        ).exists()
+        return is_in_shopping_cart
+
     def validate(self, attrs):
         """
         Валидацияя данных перед выполнением метода create(validated_data)
+
         :param attrs: атрибуты полученные для валидации.
         :return: возвращает провалидированные данные.
         """
+
         ingredients = self.initial_data.get('ingredients')
         if not ingredients:
             raise serializers.ValidationError(

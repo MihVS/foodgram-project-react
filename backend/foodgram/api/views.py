@@ -1,12 +1,19 @@
-from rest_framework import viewsets, mixins, permissions
+from rest_framework import viewsets, permissions, status
 from django.contrib.auth import get_user_model
 
-# from rest_framework.status import HTTP_401_UNAUTHORIZED
+from rest_framework.generics import get_object_or_404
+
+from rest_framework.response import Response
 from rest_framework.decorators import action
+
 from .serializers import (IngredientSerializer, RecipesSerializer,
                           UsersSerializer, TagSerializer, FollowSerializer)
 
-from recipes.models import Ingredient, Recipe, Tag, Follow
+from recipes.models import (Ingredient, Recipe, Tag, Follow, Favorite,
+                            ShoppingCart)
+
+from .mixins import FavoriteShoppingcartMixin
+
 
 User = get_user_model()
 
@@ -17,56 +24,84 @@ class UsersViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UsersSerializer
 
-    # @action(
-    #     methods=('post', 'delete'),
-    #     detail=True,
-    #     permission_classes=[permissions.IsAuthenticated],
-    #     serializer_class=FollowSerializer
-    # )
-    # def subscribe(self, request, pk):
-    #     """
-    #     Создаётся или удаляется подписка на пользователя.
-    #
-    #     :param request: не используется.
-    #     :param pk: id пользователя на которого нужно подписаться(отписаться).
-    #     :return:
-    #     """
-    #
-    #     # serializer = SubscribeSerializer(data=request.data)
-    #     print(request)
-    #     print(pk)
-    #     return
+    @action(
+        methods=['post', 'delete'],
+        detail=True,
+        permission_classes=[permissions.IsAuthenticated],
+    )
+    def subscribe(self, request, pk):
+        """
+        Создаётся или удаляется подписка на пользователя.
+
+        :param request: данные запроса.
+        :param pk: id пользователя на которого нужно подписаться(отписаться).
+        :return:
+        """
+
+        user = request.user
+        author = get_object_or_404(User, id=pk)
+        is_subscribed = Follow.objects.filter(
+            user=user,
+            author=author
+        ).exists()
+
+        if request.method == 'DELETE':
+            if not is_subscribed:
+                response = Response(
+                    {'errors': 'Вы не были подписаны на этого автора'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+                return response
+
+            Follow.objects.get(user=user, author=author).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        if user == author:
+            response = Response(
+                {'errors': 'Подписка самого на себя невозможна'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            return response
+
+        if is_subscribed:
+            response = Response(
+                {'errors': 'Вы уже подписаны на этого пользователя'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            return response
+
+        Follow.objects.create(user=user, author=author)
+
+        follow = User.objects.get(pk=author.id)
+        serializer = FollowSerializer(
+            follow,
+            context={'request': request}
+        )
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(
         methods=('get',),
         detail=False,
         permission_classes=[permissions.IsAuthenticated],
-        serializer_class=FollowSerializer
     )
     def subscriptions(self, request):
         """
         Получаем всех пользователей на которых подписан.
 
-        :param request: не используется.
-        :return:
+        :param request: данные запроса.
+        :return: Возвращает сериализованные данные через FollowSerializer
+                 с пагинацией.
         """
 
         user = request.user
-        following_queryset = Follow.objects.filter(user=user)
-
-        return FollowSerializer(following_queryset, many=True, context={'request': request}).data
-
-
-# class FollowerViewSet(mixins.CreateModelMixin,
-#                       mixins.DestroyModelMixin,
-#                       mixins.ListModelMixin,
-#                       GenericViewSet):
-#     """Вьюсет для подписчиков"""
-#
-#     queryset = User.objects.all()
-
-#     serializer_class = FollowerSerializer
-#     permission_classes = (permissions.IsAuthenticated,)
+        queryset = User.objects.filter(following__user_id=user.id)
+        page = self.paginate_queryset(queryset)
+        serializer = FollowSerializer(
+            page,
+            many=True,
+            context={'request': request}
+        )
+        return self.get_paginated_response(serializer.data)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -107,10 +142,62 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
 
-class RecipesViewSet(viewsets.ModelViewSet):
+class RecipesViewSet(viewsets.ModelViewSet, FavoriteShoppingcartMixin):
     """Вьюсет для рецептов"""
 
     queryset = Recipe.objects.all()
     serializer_class = RecipesSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
+    @action(
+        methods=['post', 'delete'],
+        detail=True,
+        permission_classes=[permissions.IsAuthenticated],
+    )
+    def favorite(self, request, pk):
+        """
+        Добавляет(удаляет) рецепт в избранное пользователя.
+
+        :param pk: id добавляемого рецепта.
+        :param request: данные запроса.
+        :return: Возвращает сериализованный рецепт который добавили
+                 или удалили из избранного.
+        """
+        response = self.add_del_to_db(
+            request=request,
+            pk=pk,
+            related_model=Favorite
+        )
+        return response
+
+    @action(
+        methods=['post', 'delete'],
+        detail=True,
+        permission_classes=[permissions.IsAuthenticated],
+    )
+    def shopping_cart(self, request, pk):
+        """
+        Добавляет(удаляет) рецепт в корзину для покупок.
+
+        :param pk: id добавляемого рецепта.
+        :param request: данные запроса.
+        :return: Возвращает сериализованный рецепт, который добавили
+                 или удалили в корзину для покупок.
+        """
+
+        response = self.add_del_to_db(
+            request=request,
+            pk=pk,
+            related_model=ShoppingCart
+        )
+        return response
+
+    @action(methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def download_shopping_cart(self, request):
+        """
+        Формирует файл списка продуктов из рецептов в списке покупок.
+
+        :param request:
+        :return:
+        """
+        return None

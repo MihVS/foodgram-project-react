@@ -1,11 +1,10 @@
-from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
+from api.custom_fields import Base64ImageField
 from recipes.models import (AmountIngredientRecipe, Ingredient, Recipe, Tag,
                             Favorite, ShoppingCart)
-from api.custom_fields import Base64ImageField
-
 
 User = get_user_model()
 
@@ -81,19 +80,6 @@ class ShortRecipesSerializer(serializers.ModelSerializer):
             'image',
             'cooking_time',
         )
-
-
-# class RecipeFollowingSerializer(serializers.ModelSerializer):
-#     """Сериализатор для рецептов у его автора"""
-#
-#     class Meta:
-#         model = Recipe
-#         fields = (
-#             'id',
-#             'name',
-#             'image',
-#             'cooking_time',
-#         )
 
 
 class FollowSerializer(UsersSerializer):

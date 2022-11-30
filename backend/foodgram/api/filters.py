@@ -1,16 +1,12 @@
 from django_filters import rest_framework as filters
 
-from recipes.models import Recipe
-
-
-class CharFilterInFilter(filters.BaseInFilter, filters.CharFilter):
-    pass
+from recipes.models import Ingredient, Recipe
 
 
 class RecipeFilter(filters.FilterSet):
     """Класс для настройки фильтра рецептов"""
 
-    tags = CharFilterInFilter(field_name='tags__slug', lookup_expr='in')
+    tags = filters.AllValuesMultipleFilter(field_name='tags__slug')
     is_favorited = filters.BooleanFilter(
         field_name='favorite',
         method='filter_is_list'
@@ -45,3 +41,13 @@ class RecipeFilter(filters.FilterSet):
         lookup = '__'.join([name, 'user'])
         queryset = queryset.filter(**{lookup: user.id})
         return queryset
+
+
+class IngredientFilter(filters.FilterSet):
+    """Класс для настройки фильтра ингредиентов"""
+
+    name = filters.CharFilter(lookup_expr='istartswith')
+
+    class Meta:
+        model = Ingredient
+        fields = ['name']

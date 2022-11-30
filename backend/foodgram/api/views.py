@@ -1,24 +1,18 @@
-from rest_framework import viewsets, permissions, status
 from django.contrib.auth import get_user_model
 from django.db.models import Sum, F
 from django.http.response import HttpResponse
-
-from rest_framework.generics import get_object_or_404
-
 from django_filters.rest_framework import DjangoFilterBackend
-
-from rest_framework.response import Response
+from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
-
-from .serializers import (IngredientSerializer, RecipesSerializer,
-                          UsersSerializer, TagSerializer, FollowSerializer)
+from rest_framework.generics import get_object_or_404
+from rest_framework.response import Response
 
 from recipes.models import (Ingredient, Recipe, Tag, Follow, Favorite,
                             ShoppingCart, AmountIngredientRecipe)
-
 from .mixins import FavoriteShoppingcartMixin
-from .service import RecipeFilter
-
+from .serializers import (IngredientSerializer, RecipesSerializer,
+                          UsersSerializer, TagSerializer, FollowSerializer)
+from .filters import IngredientFilter, RecipeFilter
 
 User = get_user_model()
 
@@ -128,23 +122,12 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     Теги доступны только для чтения.
     """
 
+    queryset = Ingredient.objects.all()
+
     serializer_class = IngredientSerializer
     pagination_class = None
-
-    def get_queryset(self):
-        """
-        Получает queryset в соответствии параметром name.
-
-        Поиск по частичному вхождению в начале названия ингредиента.
-        """
-
-        queryset = Ingredient.objects.all()
-        name = self.request.query_params.get('name')
-
-        if name:
-            queryset = queryset.filter(name__istartswith=name)
-
-        return queryset
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = IngredientFilter
 
 
 class RecipesViewSet(viewsets.ModelViewSet, FavoriteShoppingcartMixin):

@@ -67,7 +67,7 @@ class Recipe(models.Model):
         verbose_name='Автор',
     )
     name = models.CharField(
-        max_length=256,
+        max_length=200,
         verbose_name='Название',
     )
     image = models.ImageField(
@@ -78,6 +78,10 @@ class Recipe(models.Model):
     )
     cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления в минутах',
+        default=0,
+        validators=[
+            MinValueValidator(1, 'Количество должно быть не меньше 1')
+        ]
     )
 
     def __str__(self):
@@ -104,10 +108,10 @@ class AmountIngredientRecipe(models.Model):
     )
     amount = models.PositiveSmallIntegerField(
         verbose_name='Количество',
-        default=1,
-        validators=(
-            MinValueValidator(1, 'Количество должно быть не меньше 1'),
-        )
+        default=0,
+        validators=[
+            MinValueValidator(1, 'Количество должно быть не меньше 1')
+        ]
     )
 
 

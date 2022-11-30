@@ -190,6 +190,10 @@ class RecipesSerializer(serializers.ModelSerializer):
         """Проверяем наличие рецепта в избранном"""
 
         user = self.context['request'].user
+
+        if user.is_anonymous:
+            return False
+
         is_favorired = Favorite.objects.filter(
             user=user,
             recipe=obj
@@ -200,6 +204,10 @@ class RecipesSerializer(serializers.ModelSerializer):
         """Проверяем наличие рецепта в корзине покупок"""
 
         user = self.context['request'].user
+
+        if user.is_anonymous:
+            return False
+
         is_in_shopping_cart = ShoppingCart.objects.filter(
             user=user,
             recipe=obj
@@ -215,6 +223,15 @@ class RecipesSerializer(serializers.ModelSerializer):
         """
 
         ingredients = self.initial_data.get('ingredients')
+        tags = self.initial_data.get('tags')
+        list_tags = Tag.objects.all().values_list('id', flat=True)
+
+        for tag in tags:
+            if tag not in list_tags:
+                raise serializers.ValidationError(
+                    {'tags': f'Тег <<{tag}>> не существует'}
+                )
+
         if not ingredients:
             raise serializers.ValidationError(
                 {'ingredients': 'Обязательное поле'}
@@ -234,8 +251,7 @@ class RecipesSerializer(serializers.ModelSerializer):
         attrs['ingredients'] = ingredients
         return attrs
 
-    @staticmethod
-    def _create_ingredients(ingredients, recipe):
+    def _create_ingredients(self, ingredients, recipe):
         """
         Создание ингредиентов в таблице recipes_amountingredientrecipe.
 
@@ -288,6 +304,6 @@ class RecipesSerializer(serializers.ModelSerializer):
         instance.tags.set(tags)
         AmountIngredientRecipe.objects.filter(recipe=instance).all().delete()
         ingredients = validated_data.get('ingredients')
-        self._craate_ingredients(ingredients, instance)
+        self._create_ingredients(ingredients, instance)
         instance.save()
         return instance

@@ -4,6 +4,9 @@ from rest_framework.routers import DefaultRouter
 from api.views import (IngredientViewSet, TagViewSet, RecipesViewSet,
                        UsersViewSet)
 
+
+app_name = 'api'
+
 router = DefaultRouter()
 
 router.register('tags', TagViewSet, basename='tags')
@@ -13,6 +16,5 @@ router.register('users', UsersViewSet, basename='users')
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('', include('djoser.urls')),
-    re_path(r'^auth/', include('djoser.urls.authtoken')),
+    re_path('auth/', include('djoser.urls.authtoken')),
 ]

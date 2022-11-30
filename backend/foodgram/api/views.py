@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import Sum, F
 from django.http.response import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
+from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
@@ -9,19 +10,17 @@ from rest_framework.response import Response
 
 from recipes.models import (Ingredient, Recipe, Tag, Follow, Favorite,
                             ShoppingCart, AmountIngredientRecipe)
-from .mixins import FavoriteShoppingcartMixin
-from .serializers import (IngredientSerializer, RecipesSerializer,
-                          UsersSerializer, TagSerializer, FollowSerializer)
 from .filters import IngredientFilter, RecipeFilter
+from .mixins import FavoriteShoppingcartMixin
+from .permissions import IsOwnerAdminOrReadOnly
+from .serializers import (IngredientSerializer, RecipesSerializer,
+                          TagSerializer, FollowSerializer)
 
 User = get_user_model()
 
 
-class UsersViewSet(viewsets.ModelViewSet):
+class UsersViewSet(DjoserUserViewSet):
     """Вьюсет для пользователей"""
-
-    queryset = User.objects.all()
-    serializer_class = UsersSerializer
 
     @action(
         methods=['post', 'delete'],
@@ -135,14 +134,14 @@ class RecipesViewSet(viewsets.ModelViewSet, FavoriteShoppingcartMixin):
 
     queryset = Recipe.objects.all()
     serializer_class = RecipesSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsOwnerAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
     @action(
         methods=['post', 'delete'],
         detail=True,
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=[IsOwnerAdminOrReadOnly],
     )
     def favorite(self, request, pk):
         """
@@ -163,7 +162,7 @@ class RecipesViewSet(viewsets.ModelViewSet, FavoriteShoppingcartMixin):
     @action(
         methods=['post', 'delete'],
         detail=True,
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=[IsOwnerAdminOrReadOnly],
     )
     def shopping_cart(self, request, pk):
         """
@@ -185,7 +184,7 @@ class RecipesViewSet(viewsets.ModelViewSet, FavoriteShoppingcartMixin):
     @action(
         methods=['get'],
         detail=False,
-        permission_classes=[permissions.IsAuthenticated],
+        permission_classes=[IsOwnerAdminOrReadOnly],
     )
     def download_shopping_cart(self, request):
         """
@@ -196,6 +195,9 @@ class RecipesViewSet(viewsets.ModelViewSet, FavoriteShoppingcartMixin):
         """
 
         user = request.user
+
+        if user.is_anonymous:
+            raise permissions.exceptions.AuthenticationFailed
 
         if not user.shoppingcart.all().exists():
             return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -222,7 +224,7 @@ class RecipesViewSet(viewsets.ModelViewSet, FavoriteShoppingcartMixin):
         response = HttpResponse(
             content=list_ingredients,
             content_type='text/plain; charset=utf-8',
-            status=status.HTTP_200_OK
+            status=status.HTTP_200_OK,
         )
         response['Content-Disposition'] = f'attachment; filename={file_name}'
         return response

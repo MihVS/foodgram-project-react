@@ -60,11 +60,10 @@ class UsersViewSet(DjoserUserViewSet):
             )
 
         if is_subscribed:
-            response = Response(
+            return Response(
                 {'errors': 'Вы уже подписаны на этого пользователя'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-            return response
 
         Follow.objects.create(user=user, author=author)
 

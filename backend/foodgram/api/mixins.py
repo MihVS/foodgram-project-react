@@ -39,11 +39,10 @@ class FavoriteShoppingcartMixin:
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         if is_db:
-            response = Response(
+            return Response(
                 {'errors': 'Этот рецепт уже был добавлен в избранное ранее'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-            return response
 
         related_model.objects.create(user=user, recipe=recipe)
         serializer = ShortRecipesSerializer(recipe)

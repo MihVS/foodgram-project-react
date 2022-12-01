@@ -150,7 +150,7 @@ class RecipesViewSet(viewsets.ModelViewSet, FavoriteShoppingcartMixin):
 
         :param pk: id добавляемого рецепта.
         :param request: данные запроса.
-        :return: Возвращает сериализованный рецепт который добавили
+        :return: Возвращает сериализованный рецепт, который добавили
                  или удалили из избранного.
         """
         response = self.add_del_to_db(

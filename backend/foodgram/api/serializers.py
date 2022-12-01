@@ -1,10 +1,9 @@
+from api.custom_fields import Base64ImageField
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from rest_framework import serializers
-
-from api.custom_fields import Base64ImageField
 from recipes.models import (AmountIngredientRecipe, Favorite, Ingredient,
                             Recipe, ShoppingCart, Tag)
+from rest_framework import serializers
 
 User = get_user_model()
 

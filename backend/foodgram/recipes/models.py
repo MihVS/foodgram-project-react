@@ -25,6 +25,10 @@ class Tag(models.Model):
     def __str__(self):
         return self.slug
 
+    class Meta:
+        verbose_name = 'Теги'
+        verbose_name_plural = 'Теги'
+
 
 class Ingredient(models.Model):
     """Ингредиенты для рецепта"""
@@ -40,6 +44,10 @@ class Ingredient(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        verbose_name = 'Ингредиенты'
+        verbose_name_plural = 'Ингредиенты'
 
 
 class Recipe(models.Model):
@@ -71,6 +79,7 @@ class Recipe(models.Model):
         verbose_name='Название',
     )
     image = models.ImageField(
+        verbose_name='Изображение',
         upload_to='recipes/images/',
     )
     text = models.TextField(
@@ -88,6 +97,8 @@ class Recipe(models.Model):
         return self.name
 
     class Meta:
+        verbose_name = 'Рецепты'
+        verbose_name_plural = 'Рецепты'
         ordering = ['-pub_date']
 
 
@@ -114,6 +125,10 @@ class AmountIngredientRecipe(models.Model):
         ]
     )
 
+    class Meta:
+        verbose_name = 'Количество ингредиентов'
+        verbose_name_plural = 'Количество ингредиентов'
+
 
 class BaseList(models.Model):
     """Базовый класс для избранного и списка покупок."""
@@ -121,11 +136,13 @@ class BaseList(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='%(class)s',
+        verbose_name='Пользователь'
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
         related_name='%(class)s',
+        verbose_name='Рецепт'
     )
 
     class Meta:
@@ -135,13 +152,17 @@ class BaseList(models.Model):
 class Favorite(BaseList):
     """Избранные рецепты пользователя"""
 
-    pass
+    class Meta(BaseList.Meta):
+        verbose_name = 'Избранное'
+        verbose_name_plural = 'Избранное'
 
 
 class ShoppingCart(BaseList):
     """Список покупок пользователя"""
 
-    pass
+    class Meta(BaseList.Meta):
+        verbose_name = 'Продуктовая корзина'
+        verbose_name_plural = 'Продуктовые корзины'
 
 
 class Follow(models.Model):
@@ -163,3 +184,7 @@ class Follow(models.Model):
         blank=True,
         null=True
     )
+
+    class Meta:
+        verbose_name = 'Подписчик'
+        verbose_name_plural = 'Подписчики'

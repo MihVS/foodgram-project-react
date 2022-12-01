@@ -30,11 +30,16 @@ class User(AbstractUser):
         verbose_name='Фамилия',
         max_length=150,
     )
-    role = models.CharField(max_length=30,
-                            choices=USER_ROLES,
-                            default='user')
+    role = models.CharField(
+        verbose_name='Роль',
+        max_length=30,
+        choices=USER_ROLES,
+        default='user'
+    )
 
     class Meta:
+        verbose_name = 'Пользователи'
+        verbose_name_plural = 'Пользователи'
         ordering = ('username',)
 
     @property

@@ -39,8 +39,7 @@ class RecipeFilter(filters.FilterSet):
             return queryset
         user = self.request.user
         lookup = '__'.join([name, 'user'])
-        queryset = queryset.filter(**{lookup: user.id})
-        return queryset
+        return queryset.filter(**{lookup: user.id})
 
 
 class IngredientFilter(filters.FilterSet):

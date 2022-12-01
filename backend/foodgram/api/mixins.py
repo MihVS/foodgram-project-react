@@ -31,11 +31,10 @@ class FavoriteShoppingcartMixin:
 
         if request.method == 'DELETE':
             if not is_db:
-                response = Response(
+                return Response(
                     {'errors': 'Рецепта не было в списке'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-                return response
 
             related_model.objects.get(user=user, recipe=recipe).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)

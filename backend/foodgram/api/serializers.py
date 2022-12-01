@@ -194,11 +194,10 @@ class RecipesSerializer(serializers.ModelSerializer):
         if user.is_anonymous:
             return False
 
-        is_favorired = Favorite.objects.filter(
+        return Favorite.objects.filter(
             user=user,
             recipe=obj
         ).exists()
-        return is_favorired
 
     def get_is_in_shopping_cart(self, obj):
         """Проверяем наличие рецепта в корзине покупок"""
@@ -208,11 +207,10 @@ class RecipesSerializer(serializers.ModelSerializer):
         if user.is_anonymous:
             return False
 
-        is_in_shopping_cart = ShoppingCart.objects.filter(
+        return ShoppingCart.objects.filter(
             user=user,
             recipe=obj
         ).exists()
-        return is_in_shopping_cart
 
     def validate(self, attrs):
         """

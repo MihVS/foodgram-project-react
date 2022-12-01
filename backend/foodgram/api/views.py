@@ -7,8 +7,10 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
+
 from recipes.models import (AmountIngredientRecipe, Favorite, Follow,
                             Ingredient, Recipe, ShoppingCart, Tag)
+
 from .filters import IngredientFilter, RecipeFilter
 from .mixins import FavoriteShoppingcartMixin
 from .permissions import IsOwnerAdminOrReadOnly
@@ -44,21 +46,19 @@ class UsersViewSet(DjoserUserViewSet):
 
         if request.method == 'DELETE':
             if not is_subscribed:
-                response = Response(
+                return Response(
                     {'errors': 'Вы не были подписаны на этого автора'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-                return response
 
             Follow.objects.get(user=user, author=author).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         if user == author:
-            response = Response(
+            return Response(
                 {'errors': 'Подписка самого на себя невозможна'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-            return response
 
         if is_subscribed:
             response = Response(
@@ -151,12 +151,12 @@ class RecipesViewSet(viewsets.ModelViewSet, FavoriteShoppingcartMixin):
         :return: Возвращает сериализованный рецепт, который добавили
                  или удалили из избранного.
         """
-        response = self.add_del_to_db(
+
+        return self.add_del_to_db(
             request=request,
             pk=pk,
             related_model=Favorite
         )
-        return response
 
     @action(
         methods=['post', 'delete'],
@@ -173,12 +173,11 @@ class RecipesViewSet(viewsets.ModelViewSet, FavoriteShoppingcartMixin):
                  или удалили в корзину для покупок.
         """
 
-        response = self.add_del_to_db(
+        return self.add_del_to_db(
             request=request,
             pk=pk,
             related_model=ShoppingCart
         )
-        return response
 
     @action(
         methods=['get'],

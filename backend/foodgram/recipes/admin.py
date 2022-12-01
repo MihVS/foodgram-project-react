@@ -7,7 +7,6 @@ admin.site.site_header = 'Администрирование Foodgram'
 admin.site.index_title = 'Управление Foodgram'
 
 
-
 @admin.register(Recipe)
 class RecipesAdmin(admin.ModelAdmin):
     """Настройки отображения рецептов в админке"""
@@ -24,7 +23,6 @@ class RecipesAdmin(admin.ModelAdmin):
     )
     list_display_links = ('name',)
     list_filter = ('tags', 'author', 'name')
-    # list_editable = ('tags',)
     search_fields = ('name', 'author__username', 'tags__slug')
     list_per_page = 20
 
@@ -71,7 +69,7 @@ class FavoriteAdmin(admin.ModelAdmin):
 
 
 @admin.register(ShoppingCart)
-class FavoriteAdmin(admin.ModelAdmin):
+class ShoppingCartAdmin(admin.ModelAdmin):
     """Настройки отображения корзин покупок пользователей в админке"""
 
     list_display = ('id', 'user', 'recipe')

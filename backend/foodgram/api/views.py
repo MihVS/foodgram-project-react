@@ -1,20 +1,21 @@
 from django.contrib.auth import get_user_model
-from django.db.models import Sum, F
+from django.db.models import F, Sum
 from django.http.response import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
-from rest_framework import viewsets, permissions, status
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 
-from recipes.models import (Ingredient, Recipe, Tag, Follow, Favorite,
-                            ShoppingCart, AmountIngredientRecipe)
+from recipes.models import (AmountIngredientRecipe, Favorite, Follow,
+                            Ingredient, Recipe, ShoppingCart, Tag)
+
 from .filters import IngredientFilter, RecipeFilter
 from .mixins import FavoriteShoppingcartMixin
 from .permissions import IsOwnerAdminOrReadOnly
-from .serializers import (IngredientSerializer, RecipesSerializer,
-                          TagSerializer, FollowSerializer)
+from .serializers import (FollowSerializer, IngredientSerializer,
+                          RecipesSerializer, TagSerializer)
 
 User = get_user_model()
 

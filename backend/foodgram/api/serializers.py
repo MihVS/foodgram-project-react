@@ -3,8 +3,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
 from api.custom_fields import Base64ImageField
-from recipes.models import (AmountIngredientRecipe, Ingredient, Recipe, Tag,
-                            Favorite, ShoppingCart)
+from recipes.models import (AmountIngredientRecipe, Favorite, Ingredient,
+                            Recipe, ShoppingCart, Tag)
 
 User = get_user_model()
 

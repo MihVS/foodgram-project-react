@@ -14,6 +14,7 @@ class UsersSerializer(serializers.ModelSerializer):
 
     Поле is_subscribed вычисляется в методе get_is_subscribed.
     """
+
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
@@ -37,10 +38,8 @@ class UsersSerializer(serializers.ModelSerializer):
 
         user = self.context['request'].user
 
-        if user.is_anonymous or (user == obj):
-            return False
-
-        return user.follower.filter(author=obj.id).exists()
+        return (False if user.is_anonymous or (user == obj)
+                else user.follower.filter(author=obj.id).exists())
 
 
 class CreateUserSerializer(serializers.ModelSerializer):
@@ -65,7 +64,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
         :param validated_data: полученные проверенные данные.
         :return: созданный пользователь.
         """
-        return get_user_model().objects.create_user(**validated_data)
+        return User.objects.create_user(**validated_data)
 
 
 class ShortRecipesSerializer(serializers.ModelSerializer):

@@ -67,9 +67,8 @@ class UsersViewSet(DjoserUserViewSet):
 
         Follow.objects.create(user=user, author=author)
 
-        follow = User.objects.get(pk=author.id)
         serializer = FollowSerializer(
-            follow,
+            author,
             context={'request': request}
         )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -88,8 +87,7 @@ class UsersViewSet(DjoserUserViewSet):
                  с пагинацией.
         """
 
-        user = request.user
-        queryset = User.objects.filter(following__user_id=user.id)
+        queryset = User.objects.filter(following__user_id=request.user.id)
         page = self.paginate_queryset(queryset)
         serializer = FollowSerializer(
             page,

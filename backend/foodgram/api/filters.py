@@ -36,9 +36,8 @@ class RecipeFilter(filters.FilterSet):
 
         if not value:
             return queryset
-        user = self.request.user
         lookup = '__'.join([name, 'user'])
-        return queryset.filter(**{lookup: user.id})
+        return queryset.filter(**{lookup: self.request.user.id})
 
 
 class IngredientFilter(filters.FilterSet):

@@ -158,6 +158,7 @@ REST_FRAMEWORK = {
     ),
 }
 
+# Настройка djoser
 
 DJOSER = {
     'LOGIN_FIELD': 'email',

@@ -23,13 +23,13 @@ class FavoriteShoppingcartMixin:
 
         user = request.user
         recipe = get_object_or_404(Recipe, id=pk)
-        is_db = related_model.objects.filter(
+        exists_in_db = related_model.objects.filter(
             user=user,
             recipe=recipe
         ).exists()
 
         if request.method == 'DELETE':
-            if not is_db:
+            if not exists_in_db:
                 return Response(
                     {'errors': 'Рецепта не было в списке'},
                     status=status.HTTP_400_BAD_REQUEST
@@ -38,7 +38,7 @@ class FavoriteShoppingcartMixin:
             related_model.objects.get(user=user, recipe=recipe).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-        if is_db:
+        if exists_in_db:
             response = Response(
                 {'errors': 'Этот рецепт уже был добавлен в избранное ранее'},
                 status=status.HTTP_400_BAD_REQUEST

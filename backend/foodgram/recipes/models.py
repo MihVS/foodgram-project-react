@@ -1,12 +1,13 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import CheckConstraint, F, Q, UniqueConstraint
 
 User = get_user_model()
 
 
 class Tag(models.Model):
-    """Тэги для рецептов"""
+    """Теги для рецептов"""
 
     name = models.CharField(
         max_length=200,
@@ -22,12 +23,12 @@ class Tag(models.Model):
         unique=True,
     )
 
-    def __str__(self):
-        return self.slug
-
     class Meta:
         verbose_name = 'Теги'
         verbose_name_plural = 'Теги'
+
+    def __str__(self):
+        return self.slug
 
 
 class Ingredient(models.Model):
@@ -42,12 +43,12 @@ class Ingredient(models.Model):
         verbose_name='Единицы измерения',
     )
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         verbose_name = 'Ингредиенты'
         verbose_name_plural = 'Ингредиенты'
+
+    def __str__(self):
+        return self.name
 
 
 class Recipe(models.Model):
@@ -93,13 +94,13 @@ class Recipe(models.Model):
         ]
     )
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         verbose_name = 'Рецепты'
         verbose_name_plural = 'Рецепты'
         ordering = ['-pub_date']
+
+    def __str__(self):
+        return self.name
 
 
 class AmountIngredientRecipe(models.Model):
@@ -132,6 +133,7 @@ class AmountIngredientRecipe(models.Model):
 
 class BaseList(models.Model):
     """Базовый класс для избранного и списка покупок."""
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -147,6 +149,12 @@ class BaseList(models.Model):
 
     class Meta:
         abstract = True
+        constraints = (
+            UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='%(app_label)s_%(class)s_is_unique'
+            ),
+        )
 
 
 class Favorite(BaseList):
@@ -167,6 +175,7 @@ class ShoppingCart(BaseList):
 
 class Follow(models.Model):
     """Подписка на автора рецепта"""
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -188,3 +197,13 @@ class Follow(models.Model):
     class Meta:
         verbose_name = 'Подписчик'
         verbose_name_plural = 'Подписчики'
+        constraints = (
+            UniqueConstraint(
+                fields=['user', 'author'],
+                name='unique follow'
+            ),
+            CheckConstraint(
+                check=~Q(user=F('author')),
+                name='no_self_subscribe'
+            )
+        )

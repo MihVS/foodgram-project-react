@@ -9,7 +9,7 @@ from recipes.models import Ingredient
 
 def read_csv(name_file):
     """Считывает данные из csv и возвращает список строк таблицы"""
-    path = os.path.join('../../data/', name_file)
+    path = os.path.join('data/', name_file)
     with open(path, encoding='utf-8') as csv_file:
         reader = csv.reader(csv_file, delimiter=',')
         return list(reader)

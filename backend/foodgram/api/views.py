@@ -27,7 +27,7 @@ class UsersViewSet(DjoserUserViewSet):
         detail=True,
         permission_classes=[permissions.IsAuthenticated],
     )
-    def subscribe(self, request, pk):
+    def subscribe(self, request, id):
         """
         Создаётся или удаляется подписка на пользователя.
 
@@ -37,7 +37,7 @@ class UsersViewSet(DjoserUserViewSet):
         """
 
         user = request.user
-        author = get_object_or_404(User, id=pk)
+        author = get_object_or_404(User, id=id)
         is_subscribed = Follow.objects.filter(
             user=user,
             author=author

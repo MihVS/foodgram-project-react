@@ -4,12 +4,12 @@ services:
   db:
     image: postgres:15.0
     volumes:
-      - /var/lib/postgresql/data/
+      - db:/var/lib/postgresql/data/
     env_file:
       - ./.env
 
   backend:
-    image: mihvs/foodgram:0.6
+    image: mihvs/foodgram:0.7 #:latest
     restart: always
     volumes:
       - static_value:/app/backend_static/
@@ -17,8 +17,8 @@ services:
       - ${PWD}/../data:/app/data/
 #    command: ["python", "manage.py", "migrate"]
 #    command: >
-#      bash -c "python manage.py migrate
-#      && python manage.py collectstatic --no-input"
+#      bash -c "python manage.py migrate --noinput
+#      && python manage.py collectstatic --noinput"
     ports:
       - "8000:8000"
     depends_on:
@@ -51,3 +51,4 @@ volumes:
   static_value:
   media_value:
   data:
+  db:

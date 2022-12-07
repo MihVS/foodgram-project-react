@@ -9,6 +9,8 @@ backend/foodgram/media/recipes/images
 # C extensions
 *.so
 
+.dockerignore
+
 # Distribution / packaging
 .Python
 build/

@@ -9,7 +9,7 @@ services:
       - ./.env
 
   backend:
-    image: mihvs/foodgram:0.7 #:latest
+    image: mihvs/foodgram:latest
     restart: always
     volumes:
       - static_value:/app/backend_static/

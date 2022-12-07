@@ -23,9 +23,10 @@ services:
       - ./.env
 
   frontend:
-    image: mihvs/foodgram_backend:latest
+    image: mihvs/foodgram_frontend:latest
     volumes:
       - ../frontend/:/app/result_build/
+
 
   nginx:
     image: nginx:1.19.3

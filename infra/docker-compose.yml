@@ -14,7 +14,7 @@ services:
     volumes:
       - static_value:/app/backend_static/
       - media_value:/app/media/
-      - ${PWD}/../data:/app/data/
+      - ../data:/app/data/
     ports:
       - "8000:8000"
     depends_on:
@@ -26,7 +26,8 @@ services:
     image: mihvs/foodgram_frontend:latest
     volumes:
       - ../frontend/:/app/result_build/
-
+    depends_on:
+      - backend
 
   nginx:
     image: nginx:1.19.3

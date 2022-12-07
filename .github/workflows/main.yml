@@ -72,7 +72,8 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd foodgram/infra/
-            sudo docker-compose down -v
+            sudo docker-compose stop
+            sudo docker-compose rm backend
             sudo rm .env
             touch .env
             echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
